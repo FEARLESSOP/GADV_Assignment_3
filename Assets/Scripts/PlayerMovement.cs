@@ -2,17 +2,98 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PlayerMovement : MonoBehaviour
+public class PlayerMovement2D : MonoBehaviour
 {
-    // Start is called before the first frame update
+    [Header("Movement Settings")]
+    public float moveSpeed = 5f;
+    public float jumpForce = 12f;
+
+    [Header("Ground Check")]
+    public Transform groundCheck;
+    public float groundCheckRadius = 0.2f;
+    public LayerMask groundLayer;
+
+    [Header("Slide Settings")]
+    public float slideForce = 10f;
+    public float slideDuration = 0.5f;
+    public Vector2 crouchScale = new Vector2(1f, 0.5f);
+    public Vector2 normalScale = new Vector2(1f, 1f);
+
+    private Rigidbody2D rb;
+    private Collider2D col;
+    private bool isGrounded;
+    private bool isSliding;
+    private float slideTimer;
+    private int facingDirection = 1;
+
     void Start()
     {
-        
+        rb = GetComponent<Rigidbody2D>();
     }
 
-    // Update is called once per frame
     void Update()
     {
-        
+        isGrounded = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundLayer);
+
+        if (!isSliding)
+        {
+            Move();
+            Jump();
+
+            if (Input.GetKeyDown(KeyCode.S) && isGrounded)
+            {
+                StartSlide();
+            }
+        }
+        else
+        {
+            if (Input.GetKeyUp(KeyCode.S))
+            {
+                EndSlide();
+            }
+            else
+            {
+                slideTimer -= Time.deltaTime;
+                if (slideTimer <= 0)
+                {
+                    EndSlide();
+                }
+            }
+        }
+    }
+
+    void Move()
+    {
+        float moveInput = Input.GetAxisRaw("Horizontal");
+        if (moveInput != 0)
+            facingDirection = moveInput > 0 ? 1 : -1;
+
+        rb.velocity = new Vector2(moveInput * moveSpeed, rb.velocity.y);
+    }
+
+    void Jump()
+    {
+        if (Input.GetKeyDown(KeyCode.W) && isGrounded && !isSliding)
+        {
+            rb.velocity = new Vector2(rb.velocity.x, jumpForce);
+        }
+    }
+
+    void StartSlide()
+    {
+        isSliding = true;
+        slideTimer = slideDuration;
+
+        transform.localScale = crouchScale;
+
+        rb.velocity = new Vector2(facingDirection * slideForce, rb.velocity.y);
+    }
+
+    void EndSlide()
+    {
+        isSliding = false;
+
+        transform.localScale = normalScale;
     }
 }
+
