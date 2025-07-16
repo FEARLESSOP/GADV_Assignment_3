@@ -7,6 +7,8 @@ public class PlayerMovement2D : MonoBehaviour
     [Header("Movement Settings")]
     public float moveSpeed = 5f;
     public float jumpForce = 12f;
+    public float DownForce = 20f;
+
 
     [Header("Ground Check")]
     public Transform groundCheck;
@@ -44,7 +46,16 @@ public class PlayerMovement2D : MonoBehaviour
             {
                 StartSlide();
             }
+
+            else if (!isGrounded)
+            {
+                if (Input.GetKeyDown(KeyCode.S))
+                {
+                    ForceDown();
+                }
+            }
         }
+
         else
         {
             if (Input.GetKeyUp(KeyCode.S))
@@ -60,6 +71,7 @@ public class PlayerMovement2D : MonoBehaviour
                 }
             }
         }
+
     }
 
     void Move()
@@ -94,6 +106,10 @@ public class PlayerMovement2D : MonoBehaviour
         isSliding = false;
 
         transform.localScale = normalScale;
+    }
+    void ForceDown()
+    {
+        rb.AddForce(-transform.up * DownForce, ForceMode2D.Impulse);
     }
 }
 
