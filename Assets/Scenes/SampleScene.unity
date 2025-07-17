@@ -3254,7 +3254,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 79228b9867e128f448d12e01fe09b77d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  player: {fileID: 1175604614}
+  offset: {x: 0, y: 0, z: -10}
+  smoothTime: 0.25
+  velocity: {x: 0, y: 0, z: 0}
+  player: {fileID: 1175604618}
 --- !u!1 &532999511
 GameObject:
   m_ObjectHideFlags: 0
@@ -3380,8 +3383,8 @@ Transform:
   m_GameObject: {fileID: 937125428}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -0.001, y: -0.153, z: 0}
-  m_LocalScale: {x: 0.2139423, y: 0.021634616, z: 0.1923077}
+  m_LocalPosition: {x: 0.00227, y: -0.153, z: 0}
+  m_LocalScale: {x: 0.14030698, y: 0.021634616, z: 0.1923077}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1175604618}
@@ -3643,7 +3646,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   moveSpeed: 8
-  jumpForce: 8
+  jumpForce: 6
   DownForce: 5
   groundCheck: {fileID: 937125429}
   groundCheckRadius: 0.2
@@ -3661,7 +3664,7 @@ MonoBehaviour:
   wallJumpingDirection: 0
   wallJumpingTime: 0.2
   wallJumpingCounter: 0
-  wallJumpingDuration: 0.4
+  wallJumpingDuration: 0.1
   wallJumpingPower: {x: 4, y: 8}
 --- !u!61 &1175604620
 BoxCollider2D:
