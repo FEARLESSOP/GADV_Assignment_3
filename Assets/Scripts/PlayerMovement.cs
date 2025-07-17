@@ -10,8 +10,6 @@ public class PlayerMovement2D : MonoBehaviour
     public float DownForce = 20f;
     private float moveInput;
 
-
-
     [Header("Ground Check")]
     public Transform groundCheck;
     public float groundCheckRadius = 0.2f;
@@ -22,6 +20,9 @@ public class PlayerMovement2D : MonoBehaviour
     public float slideDuration = 0.5f;
     public Vector2 crouchScale = new Vector2(1f, 0.5f);
     public Vector2 normalScale = new Vector2(1f, 1f);
+    public float slideSpeed;
+    public float slideFriction = 2f;
+    private int slideDirection;
 
     [Header("Wall Jump Settings")]
     public Transform wallCheck;
@@ -76,16 +77,22 @@ public class PlayerMovement2D : MonoBehaviour
             if (Input.GetKeyUp(KeyCode.S))
             {
                 EndSlide();
+                return;
             }
-            else
+
+            rb.velocity = new Vector2(slideSpeed, rb.velocity.y);
+
+            slideSpeed = Mathf.MoveTowards(slideSpeed, 0f, slideFriction * Time.deltaTime);
+
+            slideTimer -= Time.deltaTime;
+            if (slideTimer <= 0 || Mathf.Abs(slideSpeed) < 0.1f)
             {
-                slideTimer -= Time.deltaTime;
-                if (slideTimer <= 0)
-                {
-                    EndSlide();
-                }
+                EndSlide();
             }
         }
+
+
+
 
         WallSlide();
         WallJump();
@@ -106,7 +113,6 @@ public class PlayerMovement2D : MonoBehaviour
         {
             facingDirection = moveInput > 0 ? 1 : -1;
 
-            // Flip the character
             Vector3 scale = transform.localScale;
             scale.x = Mathf.Abs(scale.x) * facingDirection;
             transform.localScale = scale;
@@ -129,17 +135,21 @@ public class PlayerMovement2D : MonoBehaviour
         isSliding = true;
         slideTimer = slideDuration;
 
-        transform.localScale = crouchScale;
+        slideDirection = moveInput != 0 ? (int)Mathf.Sign(moveInput) : facingDirection;
 
-        rb.velocity = new Vector2(facingDirection * slideForce, rb.velocity.y);
+        transform.localScale = new Vector3(crouchScale.x * slideDirection, crouchScale.y, 1f);
+
+        slideSpeed = slideForce * slideDirection;
     }
+
 
     void EndSlide()
     {
         isSliding = false;
-
-        transform.localScale = normalScale;
+        transform.localScale = new Vector3(normalScale.x * facingDirection, normalScale.y, 1f);
     }
+
+
     void ForceDown()
     {
         rb.AddForce(-transform.up * DownForce, ForceMode2D.Impulse);
@@ -175,7 +185,7 @@ public class PlayerMovement2D : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.W) && wallJumpingCounter > 0f)
         {
             isWallJumping = true;
-            rb.velocity = new Vector2(wallJumpingDirection * wallJumpingPower.x, wallJumpingPower.y);
+            rb.velocity = new Vector2(facingDirection * wallJumpingPower.x, wallJumpingPower.y);
             wallJumpingCounter = 0f;
 
             Invoke(nameof(StopWallJumping), wallJumpingDuration);
