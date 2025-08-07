@@ -3258,16 +3258,6 @@ Tilemap:
       m_TileObjectToInstantiateIndex: 65535
       dummyAlignment: 0
       m_AllTileFlags: 1073741826
-  - first: {x: -11, y: 1, z: 0}
-    second:
-      serializedVersion: 2
-      m_TileIndex: 1
-      m_TileSpriteIndex: 8
-      m_TileMatrixIndex: 3
-      m_TileColorIndex: 0
-      m_TileObjectToInstantiateIndex: 65535
-      dummyAlignment: 0
-      m_AllTileFlags: 1073741826
   - first: {x: 12, y: 1, z: 0}
     second:
       serializedVersion: 2
@@ -3372,7 +3362,7 @@ Tilemap:
     second:
       serializedVersion: 2
       m_TileIndex: 1
-      m_TileSpriteIndex: 19
+      m_TileSpriteIndex: 8
       m_TileMatrixIndex: 3
       m_TileColorIndex: 0
       m_TileObjectToInstantiateIndex: 65535
@@ -3612,7 +3602,7 @@ Tilemap:
   m_TileAssetArray:
   - m_RefCount: 0
     m_Data: {fileID: 0}
-  - m_RefCount: 329
+  - m_RefCount: 328
     m_Data: {fileID: 11400000, guid: 5ee15f5f9a7970c4dbbc694f6df731cd, type: 2}
   m_TileSpriteArray:
   - m_RefCount: 0
@@ -3653,7 +3643,7 @@ Tilemap:
     m_Data: {fileID: 4289265050007642813, guid: 2a22facb4e32f6f469ec0d8375d66687, type: 3}
   - m_RefCount: 45
     m_Data: {fileID: 7434735797463773118, guid: 2a22facb4e32f6f469ec0d8375d66687, type: 3}
-  - m_RefCount: 25
+  - m_RefCount: 24
     m_Data: {fileID: -5892998262390063022, guid: 2a22facb4e32f6f469ec0d8375d66687, type: 3}
   - m_RefCount: 34
     m_Data: {fileID: -8798391335651912530, guid: 2a22facb4e32f6f469ec0d8375d66687, type: 3}
@@ -3722,7 +3712,7 @@ Tilemap:
       e31: 0
       e32: 4.5905e-41
       e33: 0
-  - m_RefCount: 329
+  - m_RefCount: 328
     m_Data:
       e00: 1
       e01: 0
@@ -3741,7 +3731,7 @@ Tilemap:
       e32: 0
       e33: 1
   m_TileColorArray:
-  - m_RefCount: 329
+  - m_RefCount: 328
     m_Data: {r: 1, g: 1, b: 1, a: 1}
   m_TileObjectToInstantiateArray: []
   m_AnimationFrameRate: 1
@@ -4580,8 +4570,16 @@ PrefabInstance:
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6566785565399862177, guid: 29587e7ebd9d3bb4880dd821160e9459, type: 3}
+      propertyPath: jumpForce
+      value: 8
+      objectReference: {fileID: 0}
+    - target: {fileID: 6566785565399862177, guid: 29587e7ebd9d3bb4880dd821160e9459, type: 3}
       propertyPath: moveSpeed
       value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 6566785565399862177, guid: 29587e7ebd9d3bb4880dd821160e9459, type: 3}
+      propertyPath: slideBoost
+      value: 15
       objectReference: {fileID: 0}
     - target: {fileID: 6566785565399862177, guid: 29587e7ebd9d3bb4880dd821160e9459, type: 3}
       propertyPath: slideSpeed
@@ -4590,6 +4588,10 @@ PrefabInstance:
     - target: {fileID: 6566785565399862177, guid: 29587e7ebd9d3bb4880dd821160e9459, type: 3}
       propertyPath: slideFriction
       value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 6566785565399862177, guid: 29587e7ebd9d3bb4880dd821160e9459, type: 3}
+      propertyPath: wallJumpForceY
+      value: 10
       objectReference: {fileID: 0}
     - target: {fileID: 6566785565399862177, guid: 29587e7ebd9d3bb4880dd821160e9459, type: 3}
       propertyPath: wallLayer.m_Bits
@@ -4601,7 +4603,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6566785565399862177, guid: 29587e7ebd9d3bb4880dd821160e9459, type: 3}
       propertyPath: wallJumpLockDuration
-      value: 0.35
+      value: 0.2
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

@@ -63,23 +63,32 @@ public class PlayerMovement2D : MonoBehaviour
         isGrounded = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundLayer);
         isTouchingWall = Physics2D.OverlapCircle(wallCheck.position, wallCheckRadius, wallLayer);
 
-        jump();
-        slide();
-        wallSlide();
-        quickFall();
-        spriteFlip();
-        wallJumpOvertake();
-
-        // Animator: Set isRunning when moving on ground and not sliding
-        bool isRunning = Mathf.Abs(horizontalInput) > 0.01f && isGrounded && !isSliding;
-        animator.SetBool("isRunning", isRunning);
+        HandleJump();
+        HandleSlide();
+        HandleWallSlide();
+        HandleQuickFall();
+        HandleSpriteFlip();
+        UpdateWallJumpTimer();
+        UpdateAnimator();
     }
 
     private void FixedUpdate()
     {
-        if (!isSliding && !isWallJumping)
+        if (!isSliding)
         {
-            rb.velocity = new Vector2(horizontalInput * moveSpeed, rb.velocity.y);
+            // During wall jump lockout, maintain velocity
+            if (isWallJumping && wallJumpTimer > 0f)
+            {
+                // Do not override velocity during lockout
+            }
+            else
+            {
+                // Normal movement with air control
+                float targetVelocityX = horizontalInput * moveSpeed;
+                float smoothing = isGrounded ? 1f : 0.1f;
+                float newVelocityX = Mathf.Lerp(rb.velocity.x, targetVelocityX, smoothing);
+                rb.velocity = new Vector2(newVelocityX, rb.velocity.y);
+            }
         }
 
         if (isSliding)
@@ -93,7 +102,7 @@ public class PlayerMovement2D : MonoBehaviour
         }
     }
 
-    private void jump()
+    private void HandleJump()
     {
         if (Input.GetKeyDown(KeyCode.Space))
         {
@@ -110,12 +119,14 @@ public class PlayerMovement2D : MonoBehaviour
                 wallJumpTimer = wallJumpLockDuration;
 
                 if ((-wallSide > 0 && !facingRight) || (-wallSide < 0 && facingRight))
+                {
                     Flip();
+                }
             }
         }
     }
 
-    private void slide()
+    private void HandleSlide()
     {
         slideTimer -= Time.deltaTime;
 
@@ -144,12 +155,14 @@ public class PlayerMovement2D : MonoBehaviour
         canSlide = true;
     }
 
-    private void wallSlide()
+    private void HandleWallSlide()
     {
         isWallSliding = !isGrounded && isTouchingWall && rb.velocity.y < 0 && !isWallJumping;
+
+        animator.SetBool("isWallSliding", isWallSliding);
     }
 
-    private void quickFall()
+    private void HandleQuickFall()
     {
         if (!isGrounded && Input.GetKey(KeyCode.S))
         {
@@ -161,17 +174,19 @@ public class PlayerMovement2D : MonoBehaviour
         }
     }
 
-    private void wallJumpOvertake()
+    private void UpdateWallJumpTimer()
     {
         if (isWallJumping)
         {
             wallJumpTimer -= Time.deltaTime;
             if (wallJumpTimer <= 0)
+            {
                 isWallJumping = false;
+            }
         }
     }
 
-    private void spriteFlip()
+    private void HandleSpriteFlip()
     {
         if (horizontalInput > 0 && !facingRight)
         {
@@ -189,6 +204,17 @@ public class PlayerMovement2D : MonoBehaviour
         Vector3 localScale = transform.localScale;
         localScale.x *= -1;
         transform.localScale = localScale;
+    }
+
+    private void UpdateAnimator()
+    {
+        bool isRunning = Mathf.Abs(horizontalInput) > 0.01f && isGrounded && !isSliding;
+        animator.SetBool("isRunning", isRunning);
+
+        bool isJumping = !isGrounded && rb.velocity.y > 0.1f;
+        bool isFalling = !isGrounded && rb.velocity.y < -0.1f;
+        animator.SetBool("isJumping", isJumping);
+        animator.SetBool("isFalling", isFalling);
     }
 
     private void OnDrawGizmosSelected()
