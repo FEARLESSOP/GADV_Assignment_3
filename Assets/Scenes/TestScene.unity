@@ -4527,11 +4527,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5277960944456082736, guid: 29587e7ebd9d3bb4880dd821160e9459, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -5.65
+      value: -1.62
       objectReference: {fileID: 0}
     - target: {fileID: 5277960944456082736, guid: 29587e7ebd9d3bb4880dd821160e9459, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.1
+      value: -0.14
       objectReference: {fileID: 0}
     - target: {fileID: 5277960944456082736, guid: 29587e7ebd9d3bb4880dd821160e9459, type: 3}
       propertyPath: m_LocalPosition.z
@@ -4602,8 +4602,28 @@ PrefabInstance:
       value: 4
       objectReference: {fileID: 0}
     - target: {fileID: 6566785565399862177, guid: 29587e7ebd9d3bb4880dd821160e9459, type: 3}
+      propertyPath: crouchColliderSize.x
+      value: 0.14
+      objectReference: {fileID: 0}
+    - target: {fileID: 6566785565399862177, guid: 29587e7ebd9d3bb4880dd821160e9459, type: 3}
+      propertyPath: crouchColliderSize.y
+      value: 0.2561579
+      objectReference: {fileID: 0}
+    - target: {fileID: 6566785565399862177, guid: 29587e7ebd9d3bb4880dd821160e9459, type: 3}
       propertyPath: wallJumpLockDuration
       value: 0.2
+      objectReference: {fileID: 0}
+    - target: {fileID: 9127329049466063143, guid: 29587e7ebd9d3bb4880dd821160e9459, type: 3}
+      propertyPath: m_Size.x
+      value: 0.14
+      objectReference: {fileID: 0}
+    - target: {fileID: 9127329049466063143, guid: 29587e7ebd9d3bb4880dd821160e9459, type: 3}
+      propertyPath: m_SpriteTilingProperty.oldSize.x
+      value: 0.32
+      objectReference: {fileID: 0}
+    - target: {fileID: 9127329049466063143, guid: 29587e7ebd9d3bb4880dd821160e9459, type: 3}
+      propertyPath: m_SpriteTilingProperty.oldSize.y
+      value: 0.32
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

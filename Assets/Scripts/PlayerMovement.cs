@@ -42,6 +42,16 @@ public class PlayerMovement2D : MonoBehaviour
     [Header("Faster Falling")]
     public float fastFallMultiplier = 2f;
 
+    [Header("Crouching")]
+    public float crouchSpeedMultiplier = 0.5f;
+    private bool isCrouching = false;
+
+    private BoxCollider2D boxCollider;
+    private Vector2 originalColliderSize;
+    private Vector2 originalColliderOffset;
+    public Vector2 crouchColliderSize = new Vector2(0.25f, 0.15f);
+    public Vector2 crouchColliderOffset = new Vector2(0f, -0.05f);
+
     private Rigidbody2D rb;
     private bool isGrounded;
     private float originalGravityScale;
@@ -53,6 +63,14 @@ public class PlayerMovement2D : MonoBehaviour
     {
         rb = GetComponent<Rigidbody2D>();
         animator = GetComponent<Animator>();
+        boxCollider = GetComponent<BoxCollider2D>();
+
+        if (boxCollider != null)
+        {
+            originalColliderSize = boxCollider.size;
+            originalColliderOffset = boxCollider.offset;
+        }
+
         originalGravityScale = rb.gravityScale;
     }
 
@@ -63,6 +81,7 @@ public class PlayerMovement2D : MonoBehaviour
         isGrounded = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundLayer);
         isTouchingWall = Physics2D.OverlapCircle(wallCheck.position, wallCheckRadius, wallLayer);
 
+        HandleCrouch();
         HandleJump();
         HandleSlide();
         HandleWallSlide();
@@ -76,15 +95,15 @@ public class PlayerMovement2D : MonoBehaviour
     {
         if (!isSliding)
         {
-            // During wall jump lockout, maintain velocity
             if (isWallJumping && wallJumpTimer > 0f)
             {
-                // Do not override velocity during lockout
             }
             else
             {
-                // Normal movement with air control
-                float targetVelocityX = horizontalInput * moveSpeed;
+                float targetSpeed = moveSpeed;
+                if (isCrouching) targetSpeed *= crouchSpeedMultiplier;
+
+                float targetVelocityX = horizontalInput * targetSpeed;
                 float smoothing = isGrounded ? 1f : 0.1f;
                 float newVelocityX = Mathf.Lerp(rb.velocity.x, targetVelocityX, smoothing);
                 rb.velocity = new Vector2(newVelocityX, rb.velocity.y);
@@ -101,6 +120,33 @@ public class PlayerMovement2D : MonoBehaviour
             rb.velocity = new Vector2(rb.velocity.x, -wallSlideSpeed);
         }
     }
+
+    private void HandleCrouch()
+    {
+        if (Input.GetKey(KeyCode.LeftControl) && isGrounded && !isSliding)
+        {
+            isCrouching = true;
+
+            if (boxCollider != null)
+            {
+                boxCollider.size = new Vector2(0.2264847f, 0.11f);
+                boxCollider.offset = originalColliderOffset;
+            }
+        }
+        else
+        {
+            isCrouching = false;
+
+            if (boxCollider != null)
+            {
+                boxCollider.size = originalColliderSize;
+                boxCollider.offset = originalColliderOffset;
+            }
+        }
+
+        animator.SetBool("isCrouching", isCrouching);
+    }
+
 
     private void HandleJump()
     {
@@ -140,6 +186,11 @@ public class PlayerMovement2D : MonoBehaviour
             if (slideDirection == 0) slideDirection = facingRight ? 1 : -1;
 
             rb.velocity = new Vector2(slideDirection * slideBoost, rb.velocity.y);
+
+            transform.rotation = Quaternion.Euler(0, 0, 90f * -slideDirection);
+
+            animator.SetBool("isFalling", true);
+
             Invoke(nameof(EndSlide), 0.5f);
             Invoke(nameof(ResetSlideCooldown), slideCooldown);
         }
@@ -148,7 +199,13 @@ public class PlayerMovement2D : MonoBehaviour
     private void EndSlide()
     {
         isSliding = false;
+
+        transform.rotation = Quaternion.identity;
+
+        if (isGrounded)
+            animator.SetBool("isFalling", false);
     }
+
 
     private void ResetSlideCooldown()
     {
@@ -158,7 +215,6 @@ public class PlayerMovement2D : MonoBehaviour
     private void HandleWallSlide()
     {
         isWallSliding = !isGrounded && isTouchingWall && rb.velocity.y < 0 && !isWallJumping;
-
         animator.SetBool("isWallSliding", isWallSliding);
     }
 
@@ -208,7 +264,7 @@ public class PlayerMovement2D : MonoBehaviour
 
     private void UpdateAnimator()
     {
-        bool isRunning = Mathf.Abs(horizontalInput) > 0.01f && isGrounded && !isSliding;
+        bool isRunning = Mathf.Abs(horizontalInput) > 0.01f && isGrounded && !isSliding && !isCrouching;
         animator.SetBool("isRunning", isRunning);
 
         bool isJumping = !isGrounded && rb.velocity.y > 0.1f;
