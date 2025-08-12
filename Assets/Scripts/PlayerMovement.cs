@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using UnityEditor.Callbacks;
 using UnityEngine;
 
 public class PlayerMovement2D : MonoBehaviour
@@ -13,6 +14,12 @@ public class PlayerMovement2D : MonoBehaviour
     public LayerMask groundLayer;
     public Transform groundCheck;
     public float groundCheckRadius = 0.2f;
+
+    // New jump buffering and coyote time variables
+    public float coyoteTime = 0.2f;
+    public float jumpBufferTime = 0.15f;
+    private float coyoteTimeCounter;
+    private float jumpBufferCounter;
 
     [Header("Sliding")]
     public float slideBoost = 8f;
@@ -46,6 +53,10 @@ public class PlayerMovement2D : MonoBehaviour
     public float crouchSpeedMultiplier = 0.5f;
     private bool isCrouching = false;
 
+    [Header("Particles")]
+    [SerializeField] private ParticleSystem dirtParticle;
+    private Vector2 particleStartPos;
+
     private BoxCollider2D boxCollider;
     private Vector2 originalColliderSize;
     private Vector2 originalColliderOffset;
@@ -72,6 +83,8 @@ public class PlayerMovement2D : MonoBehaviour
         }
 
         originalGravityScale = rb.gravityScale;
+
+        particleStartPos = dirtParticle.transform.localPosition;
     }
 
     private void Update()
@@ -81,6 +94,26 @@ public class PlayerMovement2D : MonoBehaviour
         isGrounded = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundLayer);
         isTouchingWall = Physics2D.OverlapCircle(wallCheck.position, wallCheckRadius, wallLayer);
 
+        // --- COYOTE TIME ---
+        if (isGrounded)
+        {
+            coyoteTimeCounter = coyoteTime;
+        }
+        else
+        {
+            coyoteTimeCounter -= Time.deltaTime;
+        }
+
+        // --- JUMP BUFFER ---
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            jumpBufferCounter = jumpBufferTime;
+        }
+        else
+        {
+            jumpBufferCounter -= Time.deltaTime;
+        }
+
         HandleCrouch();
         HandleJump();
         HandleSlide();
@@ -89,6 +122,7 @@ public class PlayerMovement2D : MonoBehaviour
         HandleSpriteFlip();
         UpdateWallJumpTimer();
         UpdateAnimator();
+        startStopParticles();
     }
 
     private void FixedUpdate()
@@ -121,6 +155,23 @@ public class PlayerMovement2D : MonoBehaviour
         }
     }
 
+    private void startStopParticles()
+    {
+        bool isMovingHorizontally = Mathf.Abs(rb.velocity.x) > 0.1f;
+
+        if (isGrounded && isMovingHorizontally && !isSliding && !isCrouching)
+        {
+            if (!dirtParticle.isPlaying)
+                dirtParticle.Play();
+        }
+        else
+        {
+            if (dirtParticle.isPlaying)
+                dirtParticle.Stop();
+        }
+    }
+
+
     private void HandleCrouch()
     {
         if (Input.GetKey(KeyCode.LeftControl) && isGrounded && !isSliding)
@@ -150,11 +201,15 @@ public class PlayerMovement2D : MonoBehaviour
 
     private void HandleJump()
     {
-        if (Input.GetKeyDown(KeyCode.Space))
+        if (jumpBufferCounter > 0f)
         {
-            if (isGrounded)
+            if (coyoteTimeCounter > 0f)
             {
                 rb.velocity = new Vector2(rb.velocity.x, jumpForce);
+
+                jumpBufferCounter = 0f;
+                coyoteTimeCounter = 0f;
+                return;
             }
             else if (isTouchingWall && !isGrounded)
             {
@@ -168,6 +223,9 @@ public class PlayerMovement2D : MonoBehaviour
                 {
                     Flip();
                 }
+
+                jumpBufferCounter = 0f;
+                return;
             }
         }
     }
@@ -247,10 +305,20 @@ public class PlayerMovement2D : MonoBehaviour
         if (horizontalInput > 0 && !facingRight)
         {
             Flip();
+            dirtParticle.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+            dirtParticle.transform.localPosition = particleStartPos;
+            dirtParticle.transform.rotation = Quaternion.Euler(0f, 0f, 0f);
+            dirtParticle.Play();
         }
         else if (horizontalInput < 0 && facingRight)
         {
             Flip();
+            Vector2 particlePos = particleStartPos;
+            particlePos.x *= -1f;
+            dirtParticle.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+            dirtParticle.transform.localPosition = particlePos;
+            dirtParticle.transform.rotation = Quaternion.Euler(0f, 180f, 0f);
+            dirtParticle.Play();
         }
     }
 
