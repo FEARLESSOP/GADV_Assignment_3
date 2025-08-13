@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 4345155225166450234}
   - component: {fileID: 8069207928641840821}
   - component: {fileID: 7843248725887021045}
+  - component: {fileID: 2712190677864080158}
   m_Layer: 0
   m_Name: Saw
   m_TagString: Untagged
@@ -29,7 +30,7 @@ Transform:
   m_GameObject: {fileID: 4463409388651053184}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0.7071068, w: 0.7071068}
-  m_LocalPosition: {x: 0, y: -0.009443166, z: 0.0060239355}
+  m_LocalPosition: {x: 33.6509, y: 1.3762478, z: 0.0060239355}
   m_LocalScale: {x: 0.31117883, y: 0.31117883, z: 0.3111789}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -134,9 +135,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5c23debbc6262734b860fd6166ad39e4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  speed: 10
-  direction: {x: 1, y: 0, z: 0}
-  respawnPoint: {fileID: 0}
+  bladeSpeed: 10
+  moveDirection: {x: 1, y: 0, z: 0}
+  playerRespawnPoint: {fileID: 0}
+  maxTravelDistance: 20
 --- !u!50 &7843248725887021045
 Rigidbody2D:
   serializedVersion: 4
@@ -164,3 +166,24 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 0
   m_Constraints: 0
+--- !u!95 &2712190677864080158
+Animator:
+  serializedVersion: 5
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4463409388651053184}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 9a8ebccb6d393e942b8188eb248f6236, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0

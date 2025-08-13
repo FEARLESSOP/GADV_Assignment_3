@@ -15,7 +15,6 @@ public class PlayerMovement2D : MonoBehaviour
     public Transform groundCheck;
     public float groundCheckRadius = 0.2f;
 
-    // New jump buffering and coyote time variables
     public float coyoteTime = 0.2f;
     public float jumpBufferTime = 0.15f;
     private float coyoteTimeCounter;
@@ -94,7 +93,6 @@ public class PlayerMovement2D : MonoBehaviour
         isGrounded = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundLayer);
         isTouchingWall = Physics2D.OverlapCircle(wallCheck.position, wallCheckRadius, wallLayer);
 
-        // --- COYOTE TIME ---
         if (isGrounded)
         {
             coyoteTimeCounter = coyoteTime;
@@ -104,7 +102,6 @@ public class PlayerMovement2D : MonoBehaviour
             coyoteTimeCounter -= Time.deltaTime;
         }
 
-        // --- JUMP BUFFER ---
         if (Input.GetKeyDown(KeyCode.Space))
         {
             jumpBufferCounter = jumpBufferTime;
