@@ -1,6 +1,5 @@
 using System.Collections;
 using System.Collections.Generic;
-using UnityEditor.Callbacks;
 using UnityEngine;
 
 public class PlayerMovement2D : MonoBehaviour
@@ -51,16 +50,13 @@ public class PlayerMovement2D : MonoBehaviour
     [Header("Crouching")]
     public float crouchSpeedMultiplier = 0.5f;
     private bool isCrouching = false;
+    private CapsuleCollider2D capsuleCollider;
+    private Vector2 originalCapsuleSize = new Vector2(0.1452234f, 0.2561355f);
+    public Vector2 crouchCapsuleSize = new Vector2(0.1452234f, 0.1018364f);
 
     [Header("Particles")]
     [SerializeField] private ParticleSystem dirtParticle;
     private Vector2 particleStartPos;
-
-    private BoxCollider2D boxCollider;
-    private Vector2 originalColliderSize;
-    private Vector2 originalColliderOffset;
-    public Vector2 crouchColliderSize = new Vector2(0.25f, 0.15f);
-    public Vector2 crouchColliderOffset = new Vector2(0f, -0.05f);
 
     private Rigidbody2D rb;
     private bool isGrounded;
@@ -69,20 +65,18 @@ public class PlayerMovement2D : MonoBehaviour
     private bool facingRight = true;
     private Animator animator;
 
+    [Header("Audio")]
+    public AudioSource audioSource; // Assign your player's AudioSource here
+    public AudioClip jumpSound;     // Assign your jump sound clip here
+
+
     private void Start()
     {
         rb = GetComponent<Rigidbody2D>();
         animator = GetComponent<Animator>();
-        boxCollider = GetComponent<BoxCollider2D>();
-
-        if (boxCollider != null)
-        {
-            originalColliderSize = boxCollider.size;
-            originalColliderOffset = boxCollider.offset;
-        }
+        capsuleCollider = GetComponent<CapsuleCollider2D>();
 
         originalGravityScale = rb.gravityScale;
-
         particleStartPos = dirtParticle.transform.localPosition;
     }
 
@@ -94,22 +88,14 @@ public class PlayerMovement2D : MonoBehaviour
         isTouchingWall = Physics2D.OverlapCircle(wallCheck.position, wallCheckRadius, wallLayer);
 
         if (isGrounded)
-        {
             coyoteTimeCounter = coyoteTime;
-        }
         else
-        {
             coyoteTimeCounter -= Time.deltaTime;
-        }
 
         if (Input.GetKeyDown(KeyCode.Space))
-        {
             jumpBufferCounter = jumpBufferTime;
-        }
         else
-        {
             jumpBufferCounter -= Time.deltaTime;
-        }
 
         HandleCrouch();
         HandleJump();
@@ -119,17 +105,14 @@ public class PlayerMovement2D : MonoBehaviour
         HandleSpriteFlip();
         UpdateWallJumpTimer();
         UpdateAnimator();
-        startStopParticles();
+        StartStopParticles();
     }
 
     private void FixedUpdate()
     {
         if (!isSliding)
         {
-            if (isWallJumping && wallJumpTimer > 0f)
-            {
-            }
-            else
+            if (!isWallJumping || wallJumpTimer <= 0f)
             {
                 float targetSpeed = moveSpeed;
                 if (isCrouching) targetSpeed *= crouchSpeedMultiplier;
@@ -142,17 +125,13 @@ public class PlayerMovement2D : MonoBehaviour
         }
 
         if (isSliding)
-        {
             rb.velocity = new Vector2(Mathf.MoveTowards(rb.velocity.x, 0f, slideDecay * Time.fixedDeltaTime), rb.velocity.y);
-        }
 
         if (isWallSliding)
-        {
             rb.velocity = new Vector2(rb.velocity.x, -wallSlideSpeed);
-        }
     }
 
-    private void startStopParticles()
+    private void StartStopParticles()
     {
         bool isMovingHorizontally = Mathf.Abs(rb.velocity.x) > 0.1f;
 
@@ -168,33 +147,25 @@ public class PlayerMovement2D : MonoBehaviour
         }
     }
 
-
     private void HandleCrouch()
     {
         if (Input.GetKey(KeyCode.LeftControl) && isGrounded && !isSliding)
         {
             isCrouching = true;
 
-            if (boxCollider != null)
-            {
-                boxCollider.size = new Vector2(0.2264847f, 0.11f);
-                boxCollider.offset = originalColliderOffset;
-            }
+            if (capsuleCollider != null)
+                capsuleCollider.size = crouchCapsuleSize;
         }
         else
         {
             isCrouching = false;
 
-            if (boxCollider != null)
-            {
-                boxCollider.size = originalColliderSize;
-                boxCollider.offset = originalColliderOffset;
-            }
+            if (capsuleCollider != null)
+                capsuleCollider.size = originalCapsuleSize;
         }
 
         animator.SetBool("isCrouching", isCrouching);
     }
-
 
     private void HandleJump()
     {
@@ -203,9 +174,12 @@ public class PlayerMovement2D : MonoBehaviour
             if (coyoteTimeCounter > 0f)
             {
                 rb.velocity = new Vector2(rb.velocity.x, jumpForce);
-
                 jumpBufferCounter = 0f;
                 coyoteTimeCounter = 0f;
+
+                if (jumpSound != null && audioSource != null)
+                    audioSource.PlayOneShot(jumpSound);
+
                 return;
             }
             else if (isTouchingWall && !isGrounded)
@@ -217,15 +191,18 @@ public class PlayerMovement2D : MonoBehaviour
                 wallJumpTimer = wallJumpLockDuration;
 
                 if ((-wallSide > 0 && !facingRight) || (-wallSide < 0 && facingRight))
-                {
                     Flip();
-                }
 
                 jumpBufferCounter = 0f;
+
+                if (jumpSound != null && audioSource != null)
+                    audioSource.PlayOneShot(jumpSound);
+
                 return;
             }
         }
     }
+
 
     private void HandleSlide()
     {
@@ -243,10 +220,9 @@ public class PlayerMovement2D : MonoBehaviour
             rb.velocity = new Vector2(slideDirection * slideBoost, rb.velocity.y);
 
             transform.rotation = Quaternion.Euler(0, 0, 90f * -slideDirection);
-
             animator.SetBool("isFalling", true);
 
-            Invoke(nameof(EndSlide), 0.5f);
+            Invoke(nameof(EndSlide), 1f);
             Invoke(nameof(ResetSlideCooldown), slideCooldown);
         }
     }
@@ -254,13 +230,11 @@ public class PlayerMovement2D : MonoBehaviour
     private void EndSlide()
     {
         isSliding = false;
-
         transform.rotation = Quaternion.identity;
 
         if (isGrounded)
             animator.SetBool("isFalling", false);
     }
-
 
     private void ResetSlideCooldown()
     {
@@ -276,13 +250,9 @@ public class PlayerMovement2D : MonoBehaviour
     private void HandleQuickFall()
     {
         if (!isGrounded && Input.GetKey(KeyCode.S))
-        {
             rb.gravityScale = originalGravityScale * fastFallMultiplier;
-        }
         else
-        {
             rb.gravityScale = originalGravityScale;
-        }
     }
 
     private void UpdateWallJumpTimer()
@@ -291,9 +261,7 @@ public class PlayerMovement2D : MonoBehaviour
         {
             wallJumpTimer -= Time.deltaTime;
             if (wallJumpTimer <= 0)
-            {
                 isWallJumping = false;
-            }
         }
     }
 

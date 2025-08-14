@@ -6,19 +6,19 @@ using UnityEngine;
 public class LevelEnd : MonoBehaviour
 {
     public bool levelStatus;
+    public event Action OnLevelComplete;
 
-    // Start is called before the first frame update
     void Start()
     {
         levelStatus = true;
     }
 
-    // Update is called once per frame
     private void OnTriggerEnter2D(Collider2D other)
     {
-        if (other.gameObject.CompareTag("Player"))
+        if (other.CompareTag("Player"))
         {
             levelStatus = false;
+            OnLevelComplete?.Invoke();
         }
     }
 }

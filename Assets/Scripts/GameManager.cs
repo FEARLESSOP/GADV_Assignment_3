@@ -8,8 +8,19 @@ public class GameManager : MonoBehaviour
     private LevelEnd levelStatus;
     public float currentTime;
     public TextMeshProUGUI _time;
-    //public bool levelStatus;
-    public float timeComplete;
+
+    [Header("UI Elements")]
+    public GameObject levelCompleteCanvas;
+    public TextMeshProUGUI finalTimeText;
+
+    [Header("Pause Menu")]
+    public GameObject pauseMenuCanvas;
+    private bool isPaused = false;
+
+    [Header("Music")]
+    public AudioSource musicSource;
+    public AudioClip backgroundMusic;
+
 
     void Start()
     {
@@ -19,12 +30,34 @@ public class GameManager : MonoBehaviour
         if (levelStatus == null)
         {
             Debug.LogError("LevelEnd script not found in scene!");
+            return;
+        }
+
+        levelStatus.OnLevelComplete += HandleLevelComplete;
+
+        if (levelCompleteCanvas != null)
+            levelCompleteCanvas.SetActive(false);
+
+        if (pauseMenuCanvas != null)
+            pauseMenuCanvas.SetActive(false);
+
+        if (musicSource != null && backgroundMusic != null)
+        {
+            musicSource.clip = backgroundMusic;
+            musicSource.loop = true;
+            musicSource.Play();
         }
     }
 
     void Update()
     {
-        //roundTimer();
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            if (isPaused)
+                ResumeGame();
+            else
+                PauseGame();
+        }
     }
 
     private void FixedUpdate()
@@ -34,7 +67,7 @@ public class GameManager : MonoBehaviour
 
     void roundTimer()
     {
-        if (levelStatus.levelStatus == true)
+        if (levelStatus.levelStatus)
         {
             currentTime += Time.deltaTime;
 
@@ -42,12 +75,35 @@ public class GameManager : MonoBehaviour
             int seconds = Mathf.FloorToInt(currentTime % 60f);
             float hundredths = (currentTime % 1f) * 100f;
 
-            _time.text = string.Format("{0:00}:{1:00}:{2:00}", minutes, seconds, Mathf.FloorToInt(hundredths));
+            _time.text = string.Format("{0:00}:{1:00}:{2:00}",
+                minutes, seconds, Mathf.FloorToInt(hundredths));
         }
+    }
 
-        else if (levelStatus.levelStatus == false)
-        {
-            Debug.Log(_time.text);
-        }
+    void HandleLevelComplete()
+    {
+        Time.timeScale = 0f;
+
+        if (finalTimeText != null)
+            finalTimeText.text = "Time: " + _time.text;
+
+        if (levelCompleteCanvas != null)
+            levelCompleteCanvas.SetActive(true);
+    }
+
+    public void PauseGame()
+    {
+        Time.timeScale = 0f;
+        isPaused = true;
+        if (pauseMenuCanvas != null)
+            pauseMenuCanvas.SetActive(true);
+    }
+
+    public void ResumeGame()
+    {
+        Time.timeScale = 1f;
+        isPaused = false;
+        if (pauseMenuCanvas != null)
+            pauseMenuCanvas.SetActive(false);
     }
 }
