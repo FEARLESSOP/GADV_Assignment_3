@@ -8,15 +8,17 @@ public class Camera : MonoBehaviour
     public float smoothTime = 0.25f;
     public Vector3 velocity = Vector3.zero;
     public Transform player;
+
     void Start()
     {
-        
+        //nothing here
     }
 
-    // Update is called once per frame
     void Update()
     {
+        //find wanted camera position
         Vector3 cameraPosition = player.position + offset;
+        //move camera smoothly to wanted position
         transform.position = Vector3.SmoothDamp(transform.position, cameraPosition, ref velocity, smoothTime);
     }
 }

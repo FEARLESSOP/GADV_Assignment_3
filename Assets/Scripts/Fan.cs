@@ -8,11 +8,14 @@ public class Fan : MonoBehaviour
 
     private void OnTriggerStay2D(Collider2D other)
     {
+        //check if object is player
         if (other.CompareTag("Player"))
         {
+            //get player rigidbody
             Rigidbody2D rb = other.GetComponent<Rigidbody2D>();
             if (rb != null)
             {
+                //push player up
                 rb.AddForce(Vector2.up * pushStrength, ForceMode2D.Force);
             }
         }

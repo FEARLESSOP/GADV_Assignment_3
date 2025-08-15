@@ -30,7 +30,7 @@ Transform:
   m_GameObject: {fileID: 4463409388651053184}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0.7071068, w: 0.7071068}
-  m_LocalPosition: {x: 33.6509, y: 1.3762478, z: 0.0060239}
+  m_LocalPosition: {x: 13.026801, y: -9.778895, z: 0.0060239}
   m_LocalScale: {x: 2.6600811, y: 2.6600811, z: 2.6600816}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -138,7 +138,7 @@ MonoBehaviour:
   bladeSpeed: 10
   moveDirection: {x: 1, y: 0, z: 0}
   playerRespawnPoint: {fileID: 0}
-  maxTravelDistance: 20
+  maxTravelDistance: 30
 --- !u!50 &7843248725887021045
 Rigidbody2D:
   serializedVersion: 4

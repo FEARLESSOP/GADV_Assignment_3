@@ -66,37 +66,40 @@ public class PlayerMovement2D : MonoBehaviour
     private Animator animator;
 
     [Header("Audio")]
-    public AudioSource audioSource; // Assign your player's AudioSource here
-    public AudioClip jumpSound;     // Assign your jump sound clip here
+    public AudioSource audioSource;
+    public AudioClip jumpSound;
 
 
     private void Start()
     {
+        //get components
         rb = GetComponent<Rigidbody2D>();
         animator = GetComponent<Animator>();
         capsuleCollider = GetComponent<CapsuleCollider2D>();
 
+        //save original gravity and particle position
         originalGravityScale = rb.gravityScale;
         particleStartPos = dirtParticle.transform.localPosition;
     }
 
     private void Update()
     {
+        //get movement input
         horizontalInput = Input.GetAxisRaw("Horizontal");
 
+        //check ground and wall status
         isGrounded = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundLayer);
         isTouchingWall = Physics2D.OverlapCircle(wallCheck.position, wallCheckRadius, wallLayer);
 
-        if (isGrounded)
-            coyoteTimeCounter = coyoteTime;
-        else
-            coyoteTimeCounter -= Time.deltaTime;
+        //update coyote time counter
+        if (isGrounded) coyoteTimeCounter = coyoteTime;
+        else coyoteTimeCounter -= Time.deltaTime;
 
-        if (Input.GetKeyDown(KeyCode.Space))
-            jumpBufferCounter = jumpBufferTime;
-        else
-            jumpBufferCounter -= Time.deltaTime;
+        //update jump buffer counter
+        if (Input.GetKeyDown(KeyCode.Space)) jumpBufferCounter = jumpBufferTime;
+        else jumpBufferCounter -= Time.deltaTime;
 
+        //handle all actions
         HandleCrouch();
         HandleJump();
         HandleSlide();
@@ -110,6 +113,7 @@ public class PlayerMovement2D : MonoBehaviour
 
     private void FixedUpdate()
     {
+        //move player if not sliding
         if (!isSliding)
         {
             if (!isWallJumping || wallJumpTimer <= 0f)
@@ -124,44 +128,42 @@ public class PlayerMovement2D : MonoBehaviour
             }
         }
 
+        //apply slide decay
         if (isSliding)
             rb.velocity = new Vector2(Mathf.MoveTowards(rb.velocity.x, 0f, slideDecay * Time.fixedDeltaTime), rb.velocity.y);
 
+        //limit wall slide speed
         if (isWallSliding)
             rb.velocity = new Vector2(rb.velocity.x, -wallSlideSpeed);
     }
 
     private void StartStopParticles()
     {
+        //play dirt particles when moving on ground
         bool isMovingHorizontally = Mathf.Abs(rb.velocity.x) > 0.1f;
 
         if (isGrounded && isMovingHorizontally && !isSliding && !isCrouching)
         {
-            if (!dirtParticle.isPlaying)
-                dirtParticle.Play();
+            if (!dirtParticle.isPlaying) dirtParticle.Play();
         }
         else
         {
-            if (dirtParticle.isPlaying)
-                dirtParticle.Stop();
+            if (dirtParticle.isPlaying) dirtParticle.Stop();
         }
     }
 
     private void HandleCrouch()
     {
+        //crouch while holding ctrl on ground
         if (Input.GetKey(KeyCode.LeftControl) && isGrounded && !isSliding)
         {
             isCrouching = true;
-
-            if (capsuleCollider != null)
-                capsuleCollider.size = crouchCapsuleSize;
+            if (capsuleCollider != null) capsuleCollider.size = crouchCapsuleSize;
         }
         else
         {
             isCrouching = false;
-
-            if (capsuleCollider != null)
-                capsuleCollider.size = originalCapsuleSize;
+            if (capsuleCollider != null) capsuleCollider.size = originalCapsuleSize;
         }
 
         animator.SetBool("isCrouching", isCrouching);
@@ -169,19 +171,19 @@ public class PlayerMovement2D : MonoBehaviour
 
     private void HandleJump()
     {
+        //check jump buffer and coyote time
         if (jumpBufferCounter > 0f)
         {
+            //normal jump
             if (coyoteTimeCounter > 0f)
             {
                 rb.velocity = new Vector2(rb.velocity.x, jumpForce);
                 jumpBufferCounter = 0f;
                 coyoteTimeCounter = 0f;
-
-                if (jumpSound != null && audioSource != null)
-                    audioSource.PlayOneShot(jumpSound);
-
+                PlayJumpSound();
                 return;
             }
+            //wall jump
             else if (isTouchingWall && !isGrounded)
             {
                 float wallSide = wallCheck.position.x > transform.position.x ? 1f : -1f;
@@ -194,20 +196,24 @@ public class PlayerMovement2D : MonoBehaviour
                     Flip();
 
                 jumpBufferCounter = 0f;
-
-                if (jumpSound != null && audioSource != null)
-                    audioSource.PlayOneShot(jumpSound);
-
+                PlayJumpSound();
                 return;
             }
         }
     }
 
+    private void PlayJumpSound()
+    {
+        //play jump sound with SFX volume
+        if (jumpSound != null && audioSource != null)
+            audioSource.PlayOneShot(jumpSound, GameManager.sfxVolume);
+    }
 
     private void HandleSlide()
     {
         slideTimer -= Time.deltaTime;
 
+        //start slide on shift if grounded
         if (Input.GetKeyDown(KeyCode.LeftShift) && isGrounded && canSlide)
         {
             isSliding = true;
@@ -229,6 +235,7 @@ public class PlayerMovement2D : MonoBehaviour
 
     private void EndSlide()
     {
+        //stop slide and reset rotation
         isSliding = false;
         transform.rotation = Quaternion.identity;
 
@@ -238,17 +245,20 @@ public class PlayerMovement2D : MonoBehaviour
 
     private void ResetSlideCooldown()
     {
+        //allow sliding again
         canSlide = true;
     }
 
     private void HandleWallSlide()
     {
+        //slide down wall when touching it in air
         isWallSliding = !isGrounded && isTouchingWall && rb.velocity.y < 0 && !isWallJumping;
         animator.SetBool("isWallSliding", isWallSliding);
     }
 
     private void HandleQuickFall()
     {
+        //increase fall speed if holding S
         if (!isGrounded && Input.GetKey(KeyCode.S))
             rb.gravityScale = originalGravityScale * fastFallMultiplier;
         else
@@ -257,38 +267,44 @@ public class PlayerMovement2D : MonoBehaviour
 
     private void UpdateWallJumpTimer()
     {
+        //count down wall jump lock
         if (isWallJumping)
         {
             wallJumpTimer -= Time.deltaTime;
-            if (wallJumpTimer <= 0)
-                isWallJumping = false;
+            if (wallJumpTimer <= 0) isWallJumping = false;
         }
     }
 
     private void HandleSpriteFlip()
     {
+        //flip sprite when changing direction
         if (horizontalInput > 0 && !facingRight)
         {
             Flip();
-            dirtParticle.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
-            dirtParticle.transform.localPosition = particleStartPos;
-            dirtParticle.transform.rotation = Quaternion.Euler(0f, 0f, 0f);
-            dirtParticle.Play();
+            ResetParticles(true);
         }
         else if (horizontalInput < 0 && facingRight)
         {
             Flip();
-            Vector2 particlePos = particleStartPos;
-            particlePos.x *= -1f;
-            dirtParticle.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
-            dirtParticle.transform.localPosition = particlePos;
-            dirtParticle.transform.rotation = Quaternion.Euler(0f, 180f, 0f);
-            dirtParticle.Play();
+            ResetParticles(false);
         }
+    }
+
+    private void ResetParticles(bool facingRight)
+    {
+        //reset dirt particle position/rotation
+        Vector2 particlePos = particleStartPos;
+        if (!facingRight) particlePos.x *= -1f;
+
+        dirtParticle.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+        dirtParticle.transform.localPosition = particlePos;
+        dirtParticle.transform.rotation = Quaternion.Euler(0f, facingRight ? 0f : 180f, 0f);
+        dirtParticle.Play();
     }
 
     private void Flip()
     {
+        //reverse player facing direction
         facingRight = !facingRight;
         Vector3 localScale = transform.localScale;
         localScale.x *= -1;
@@ -297,9 +313,11 @@ public class PlayerMovement2D : MonoBehaviour
 
     private void UpdateAnimator()
     {
+        //update running state
         bool isRunning = Mathf.Abs(horizontalInput) > 0.01f && isGrounded && !isSliding && !isCrouching;
         animator.SetBool("isRunning", isRunning);
 
+        //update jumping and falling states
         bool isJumping = !isGrounded && rb.velocity.y > 0.1f;
         bool isFalling = !isGrounded && rb.velocity.y < -0.1f;
         animator.SetBool("isJumping", isJumping);
@@ -308,10 +326,8 @@ public class PlayerMovement2D : MonoBehaviour
 
     private void OnDrawGizmosSelected()
     {
-        if (groundCheck != null)
-            Gizmos.DrawWireSphere(groundCheck.position, groundCheckRadius);
-
-        if (wallCheck != null)
-            Gizmos.DrawWireSphere(wallCheck.position, wallCheckRadius);
+        //draw ground and wall check spheres in editor
+        if (groundCheck != null) Gizmos.DrawWireSphere(groundCheck.position, groundCheckRadius);
+        if (wallCheck != null) Gizmos.DrawWireSphere(wallCheck.position, wallCheckRadius);
     }
 }

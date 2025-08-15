@@ -2,22 +2,27 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class DeathTrigger : MonoBehaviour
+public class SawTrigger : MonoBehaviour
 {
-    // Start is called before the first frame update
-    public GameObject player;
     public Transform respawnPoint;
-    void Start()
-    {
-        
-    }
 
-    // Update is called once per frame
-    private void OnCollisionEnter2D(Collision2D other)
+    private void OnTriggerEnter2D(Collider2D collision)
     {
-        if (other.gameObject.CompareTag("Player"))
+        //check if hit object is player
+        if (collision.CompareTag("Player"))
         {
-            player.transform.position = respawnPoint.position;
+            //move player to respawn point
+            collision.transform.position = respawnPoint.position;
+
+            //get player rigidbody
+            Rigidbody2D rb = collision.GetComponent<Rigidbody2D>();
+            if (rb != null)
+            {
+                //stop player movement
+                rb.velocity = Vector2.zero;
+                //stop player rotation
+                rb.angularVelocity = 0f;
+            }
         }
     }
 }
